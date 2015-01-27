@@ -291,6 +291,8 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
     }
     function onPressUp(ev) {
       element.removeClass('dragging active');
+      
+      if ( isDiscrete ) cleanupSliderFromEvent(ev);
     }
     function onDragStart(ev) {
       if (isDisabledGetter(scope)) return;
@@ -310,13 +312,7 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
       ev.stopPropagation();
       isDragging = false;
 
-      var exactVal = percentToValue( positionToPercent( ev.pointer.x ));
-      var closestVal = minMaxValidator( stepValidator(exactVal) );
-
-      setSliderPercent( valueToPercent(closestVal));
-      $$rAF(function(){
-        setModelValue( closestVal );
-      });
+      cleanupSliderFromEvent(ev);
     }
 
     function setSliderFromEvent(ev) {
@@ -324,6 +320,21 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
       // visual positioning but not the model value.
       if ( isDiscrete ) adjustThumbPosition( ev.pointer.x );
       else              doSlide( ev.pointer.x );
+    }
+
+    /**
+     * After gesture is completed, slide the UI to match
+     * the closest value and update the model value
+     * @param ev
+     */
+    function cleanupSliderFromEvent(ev) {
+      var exactVal = percentToValue( positionToPercent( ev.pointer.x ));
+      var closestVal = minMaxValidator( stepValidator(exactVal) );
+
+      setSliderPercent( valueToPercent(closestVal));
+      $$rAF(function(){
+        setModelValue( closestVal );
+      });
     }
 
     /**
